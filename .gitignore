@@ -8,10 +8,15 @@ venv/
 # Environment & secrets
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 secrets/
 credentials.*
+
+# Database (local, may contain personal data)
+*.db
+*.sqlite3
 
 # IDE
 .idea/

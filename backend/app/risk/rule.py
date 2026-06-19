@@ -8,6 +8,7 @@ from app.strategy.signal import Signal
 class RiskResult:
     passed: bool
     message: str
+    severity: str = "block"  # block | warn | limit
     adjusted_quantity: Optional[int] = None
 
 

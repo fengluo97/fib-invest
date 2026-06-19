@@ -1,0 +1,12 @@
+strategy_type: ma_cross
+name: 均线交叉示例
+symbols:
+  - "000001.sz"
+params:
+  fast: 5
+  slow: 20
+  signal_cooldown: 5
+mode: semi-auto
+risk_profile:
+  max_position_pct: 0.2
+  daily_loss_limit: 5000

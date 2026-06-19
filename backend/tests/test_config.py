@@ -5,11 +5,13 @@ from app.core.config import Settings
 def test_settings_loads_from_env():
     os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///test.db"
     os.environ["REDIS_URL"] = "redis://test:6379"
-    settings = Settings()
-    assert "test.db" in settings.database_url
-    assert "test" in settings.redis_url
-    del os.environ["DATABASE_URL"]
-    del os.environ["REDIS_URL"]
+    try:
+        settings = Settings()
+        assert "test.db" in settings.database_url
+        assert "test" in settings.redis_url
+    finally:
+        del os.environ["DATABASE_URL"]
+        del os.environ["REDIS_URL"]
 
 
 def test_settings_defaults():

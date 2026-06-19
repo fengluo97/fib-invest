@@ -1,4 +1,3 @@
-import pytest
 from decimal import Decimal
 from datetime import date, datetime
 from app.models.symbol import Symbol
@@ -7,28 +6,7 @@ from app.models.account import Account, Position
 from app.models.strategy_config import StrategyConfig
 from app.models.order import Order, OrderStatus
 from app.models.trade import Trade
-from app.core.database import async_session, engine
-
-
-@pytest.fixture(autouse=True)
-async def setup_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Symbol.metadata.create_all)
-        await conn.run_sync(DailyBar.metadata.create_all)
-        await conn.run_sync(Account.metadata.create_all)
-        await conn.run_sync(Position.metadata.create_all)
-        await conn.run_sync(StrategyConfig.metadata.create_all)
-        await conn.run_sync(Order.metadata.create_all)
-        await conn.run_sync(Trade.metadata.create_all)
-    yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Symbol.metadata.drop_all)
-        await conn.run_sync(DailyBar.metadata.drop_all)
-        await conn.run_sync(Account.metadata.drop_all)
-        await conn.run_sync(Position.metadata.drop_all)
-        await conn.run_sync(StrategyConfig.metadata.drop_all)
-        await conn.run_sync(Order.metadata.drop_all)
-        await conn.run_sync(Trade.metadata.drop_all)
+from app.core.database import async_session
 
 
 async def test_create_and_query_symbol():

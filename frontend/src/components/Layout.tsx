@@ -1,11 +1,12 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Layout as AntLayout, Menu } from "antd";
-import { DashboardOutlined, CodeOutlined, BarChartOutlined, OrderedListOutlined } from "@ant-design/icons";
+import { DashboardOutlined, CodeOutlined, BarChartOutlined, OrderedListOutlined, StockOutlined } from "@ant-design/icons";
 
 const { Header, Content } = AntLayout;
 
 const menuItems = [
   { key: "/", icon: <DashboardOutlined />, label: "看板" },
+  { key: "/market", icon: <StockOutlined />, label: "行情" },
   { key: "/strategies", icon: <CodeOutlined />, label: "策略" },
   { key: "/backtest", icon: <BarChartOutlined />, label: "回测" },
   { key: "/orders", icon: <OrderedListOutlined />, label: "订单" },

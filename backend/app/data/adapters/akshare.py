@@ -21,6 +21,20 @@ class AKShareDataProvider(DataProvider):
     async def get_bars(
         self, symbol: str, start: date, end: date, freq: str = "daily"
     ) -> Optional[pd.DataFrame]:
+        """Get daily bars. Tries Eastmoney first, falls back to Sina if unreachable."""
+        # Try 1: Eastmoney (stock_zh_a_hist)
+        df = await self._try_eastmoney(symbol, start, end)
+        if df is not None:
+            return df
+
+        # Try 2: Sina (stock_zh_a_daily) — different upstream, often works
+        # when Eastmoney is blocked by corporate firewalls or proxies.
+        df = await self._try_sina(symbol, start, end)
+        return df
+
+    async def _try_eastmoney(
+        self, symbol: str, start: date, end: date
+    ) -> Optional[pd.DataFrame]:
         try:
             df = ak.stock_zh_a_hist(
                 symbol=symbol, period="daily",
@@ -34,6 +48,35 @@ class AKShareDataProvider(DataProvider):
                 "日期": "date", "开盘": "open", "最高": "high",
                 "最低": "low", "收盘": "close", "成交量": "volume",
                 "成交额": "amount"
+            })
+            df["date"] = pd.to_datetime(df["date"]).dt.date
+            df["adj_factor"] = 1.0
+            df["symbol"] = symbol
+            return df[["symbol", "date", "open", "high", "low", "close", "volume", "amount", "adj_factor"]]
+        except Exception:
+            return None
+
+    async def _try_sina(
+        self, symbol: str, start: date, end: date
+    ) -> Optional[pd.DataFrame]:
+        """Fallback: Sina Finance daily bars via stock_zh_a_daily."""
+        try:
+            # Determine market prefix: 6xxxxx → sh, others → sz
+            code = symbol.zfill(6)
+            sina_symbol = f"sh{code}" if code.startswith("6") else f"sz{code}"
+
+            df = ak.stock_zh_a_daily(
+                symbol=sina_symbol,
+                start_date=start.strftime("%Y%m%d"),
+                end_date=end.strftime("%Y%m%d"),
+                adjust="qfq"
+            )
+            if df is None or df.empty:
+                return None
+            df = df.rename(columns={
+                "date": "date", "open": "open", "high": "high",
+                "low": "low", "close": "close", "volume": "volume",
+                "amount": "amount"
             })
             df["date"] = pd.to_datetime(df["date"]).dt.date
             df["adj_factor"] = 1.0
@@ -62,6 +105,10 @@ class AKShareDataProvider(DataProvider):
     async def health_check(self) -> bool:
         try:
             df = ak.stock_zh_a_hist(symbol="000001", period="daily", start_date="20260101", end_date="20260601")
+            if df is not None and not df.empty:
+                return True
+            # Fallback: try Sina if Eastmoney is unreachable
+            df = ak.stock_zh_a_daily(symbol="sz000001", start_date="20260101", end_date="20260601", adjust="qfq")
             return df is not None and not df.empty
         except Exception:
             return False
